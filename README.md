@@ -178,6 +178,114 @@ The default table `yellow_taxi_data` contains the following columns:
 - **pgAdmin**: PostgreSQL web interface
 - **tqdm**: Progress bars
 
+## Check Python/pip Version in Docker
+
+To check the pip version installed in Python 3.13 container:
+
+```bash
+docker run -it --rm python:3.13.10
+```
+
+Then inside the container:
+```python
+import pip
+print(pip.__version__)
+```
+
+## Homework Queries
+
+SQL queries used to complete the homework assignment with November 2025 green taxi data:
+
+### Query 1: Count trips with distance <= 1 mile (November 2025)
+```sql
+SELECT 
+    COUNT(*) 
+FROM 
+    green_trip_data 
+WHERE 
+    lpep_pickup_datetime >= '2025-11-01 00:00:00' 
+    AND lpep_pickup_datetime < '2025-12-01 00:00:00'
+    AND trip_distance <= 1.0;
+```
+
+### Query 2: Count trips with distance <= 1 mile (alternative)
+```sql
+SELECT 
+    COUNT(*) 
+FROM 
+    green_tripdata_2025_11 
+WHERE 
+    trip_distance <= 1.0;
+```
+
+### Query 3: Day with the longest trip distance
+```sql
+SELECT 
+    lpep_pickup_datetime::date, 
+    MAX(trip_distance) as max_dist
+FROM 
+    green_tripdata_2025_11
+GROUP BY 
+    1
+ORDER BY 
+    max_dist DESC
+LIMIT 1;
+```
+
+### Query 4: Longest trip distance (excluding outliers > 100 miles)
+```sql
+SELECT 
+    lpep_pickup_datetime::date AS pickup_day,
+    MAX(trip_distance) AS longest_distance
+FROM 
+    green_tripdata_2025_11
+WHERE 
+    trip_distance < 100
+GROUP BY 
+    1
+ORDER BY 
+    longest_distance DESC
+LIMIT 1;
+```
+
+### Query 5: Top pickup zone by total amount on 2025-11-18
+```sql
+SELECT 
+    z."Zone",
+    SUM(g.total_amount) AS total_amount_sum
+FROM 
+    green_tripdata_2025_11 g
+JOIN 
+    taxi_zone_lookup z ON g."PULocationID" = z."LocationID"
+WHERE 
+    g.lpep_pickup_datetime::date = '2025-11-18'
+GROUP BY 
+    z."Zone"
+ORDER BY 
+    total_amount_sum DESC
+LIMIT 1;
+```
+
+### Query 6: Dropoff zone with highest tip from East Harlem North
+```sql
+SELECT 
+    zdrop."Zone" AS dropoff_zone,
+    MAX(g.tip_amount) AS max_tip
+FROM 
+    green_tripdata_2025_11 g
+JOIN 
+    taxi_zone_lookup zpick ON g."PULocationID" = zpick."LocationID"
+JOIN 
+    taxi_zone_lookup zdrop ON g."DOLocationID" = zdrop."LocationID"
+WHERE 
+    zpick."Zone" = 'East Harlem North'
+GROUP BY 
+    zdrop."Zone"
+ORDER BY 
+    max_tip DESC
+LIMIT 1;
+```
+
 ## Development
 
 ### Running Tests
